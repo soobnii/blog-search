@@ -10,4 +10,5 @@ public class KeywordDto {
 	private String keyword;
 	
 	private Integer searchCount;
+	
 }

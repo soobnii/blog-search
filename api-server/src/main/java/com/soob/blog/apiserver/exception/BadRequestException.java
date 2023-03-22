@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Getter
 public class BadRequestException extends RuntimeException {
 	
-	private int status;
-	private String message;
+	private final String message;
 	
 	public BadRequestException(String message) {
-		this.status = HttpStatus.BAD_REQUEST.value();
 		this.message = message;
+	}
+	
+	public BadRequestException() {
+		this.message = "잘못된 요청입니다.";
 	}
 }
 

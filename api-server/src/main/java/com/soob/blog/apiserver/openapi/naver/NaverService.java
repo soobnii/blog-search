@@ -3,10 +3,10 @@ package com.soob.blog.apiserver.openapi.naver;
 import com.google.gson.Gson;
 import com.soob.blog.apiserver.exception.BadRequestException;
 import com.soob.blog.apiserver.exception.InternalServerErrorException;
-import com.soob.blog.apiserver.openapi.naver.model.NaverResponseModel;
 import com.soob.blog.apiserver.keyword.dto.SearchRequestDto;
 import com.soob.blog.apiserver.keyword.dto.SearchResponseDto;
 import com.soob.blog.apiserver.keyword.enums.SortCode;
+import com.soob.blog.apiserver.openapi.naver.model.NaverResponseModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -36,7 +36,7 @@ public class NaverService {
 	@Value("${api.naver.clientSecret}")
 	private String clientSecret;
 	
-	private final String url = "/v1/search/blog";
+	private static final String NAVER_SEARCH_BLOG_URL = "/v1/search/blog";
 	
 	public SearchResponseDto searchBlog(SearchRequestDto requestDto) {
 		RestTemplate restTemplate = new RestTemplate();
@@ -45,12 +45,11 @@ public class NaverService {
 		headers.add("X-Naver-Client-Secret", clientSecret);
 		headers.add("Content-Type", "application/json;charset=UTF-8");
 		
-		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<String, String>();
+		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
 		queryParams.add("query", requestDto.getQuery());
 		if(requestDto.getSort() != null) {
-			SortCode code = requestDto.getSort();
 			String sort = "sim";
-			if(code.getCode().equals("R")) {
+			if(requestDto.getSort().equals(SortCode.RECENT)) {
 				sort = "date";
 			}
 			queryParams.add("sort", sort);
@@ -63,7 +62,7 @@ public class NaverService {
 		}
 		
 		UriComponents completedUri = UriComponentsBuilder
-				.fromHttpUrl(host+url)
+				.fromHttpUrl(host + NAVER_SEARCH_BLOG_URL)
 				.queryParams(queryParams)
 				.build();
 		
@@ -75,9 +74,9 @@ public class NaverService {
 			NaverResponseModel model = response.getBody();
 			
 			if(model != null) {
-				responseDto = response.getBody().toDto();
+				responseDto = model.toDto();
 			}
-		} catch (HttpClientErrorException exception) {
+		} catch (HttpStatusCodeException exception) {
 			if(!exception.getStatusCode().is2xxSuccessful()) {
 				String messageStr = exception.getResponseBodyAsString();
 				Gson gson = new Gson();
@@ -89,7 +88,10 @@ public class NaverService {
 					throw new BadRequestException(messages);
 				}
 			}
+		} catch (Exception exception) {
+			throw new InternalServerErrorException();
 		}
+		
 		return responseDto;
 	}
 }

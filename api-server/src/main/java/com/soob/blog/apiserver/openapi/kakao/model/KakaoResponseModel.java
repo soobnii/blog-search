@@ -17,7 +17,7 @@ public class KakaoResponseModel {
 	
 	public SearchResponseDto toDto() {
 		List<BlogDto> blogList = new ArrayList<>();
-		this.documents.forEach(document -> {
+		this.documents.forEach(document ->
 				blogList.add(BlogDto.builder()
 								.blogname(document.getBlogname())
 								.contents(document.getContents())
@@ -27,8 +27,8 @@ public class KakaoResponseModel {
 								.thumbnail(document.getThumbnail())
 								.title(document.getTitle())
 								.url(document.getUrl())
-								.build());
-			});
+								.build())
+			);
 		
 		return SearchResponseDto.builder()
 				.totalCount(this.meta.getTotalCount())

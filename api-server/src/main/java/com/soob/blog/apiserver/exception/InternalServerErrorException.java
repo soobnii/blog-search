@@ -8,12 +8,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Getter
 public class InternalServerErrorException extends RuntimeException {
 	
-	private int status;
-	private String message;
+	private final String message;
 	
 	public InternalServerErrorException(String message) {
-		this.status = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		this.message = message;
+	}
+	
+	public InternalServerErrorException() {
+		this.message = "서버 에러입니다";
 	}
 	
 }

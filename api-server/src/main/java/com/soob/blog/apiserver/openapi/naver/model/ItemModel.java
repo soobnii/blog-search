@@ -2,20 +2,18 @@ package com.soob.blog.apiserver.openapi.naver.model;
 
 import lombok.Getter;
 
-import java.util.Date;
-
 @Getter
 public class ItemModel {
 	
-	public String title;
+	private String title;
 	
-	public String link;
+	private String link;
 	
-	public String description;
+	private String description;
 	
-	public String bloggername;
+	private String bloggername;
 	
-	public String bloggerlink;
+	private String bloggerlink;
 	
-	public String postdate;
+	private String postdate;
 }

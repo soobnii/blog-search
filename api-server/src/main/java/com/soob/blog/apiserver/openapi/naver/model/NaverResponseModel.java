@@ -2,30 +2,32 @@ package com.soob.blog.apiserver.openapi.naver.model;
 
 import com.soob.blog.apiserver.keyword.dto.BlogDto;
 import com.soob.blog.apiserver.keyword.dto.SearchResponseDto;
+import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class NaverResponseModel {
 	
-	public String lastBuildDate;
+	private String lastBuildDate;
 	
-	public Integer total;
+	private Integer total;
 	
-	public Integer start;
+	private Integer start;
 	
-	public Integer display;
+	private Integer display;
 	
-	public List<ItemModel> items;
+	private List<ItemModel> items;
 	
 	public SearchResponseDto toDto() {
 		List<BlogDto> blogList = new ArrayList<>();
 		this.items.forEach(item -> {
 				String postDate = item.getPostdate();
 				blogList.add(BlogDto.builder()
-								.bloggername(item.getBloggername())
+								.blogname(item.getBloggername())
 								.contents(item.getDescription())
 								.date(LocalDate.parse(postDate, DateTimeFormatter.ofPattern("yyyyMMdd")))
 								.title(item.getTitle())

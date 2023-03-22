@@ -21,5 +21,4 @@ public class BlogDto {
 	
 	private LocalDate date;
 	
-	private String bloggername;
 }

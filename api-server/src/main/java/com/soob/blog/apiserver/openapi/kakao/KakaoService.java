@@ -2,11 +2,12 @@ package com.soob.blog.apiserver.openapi.kakao;
 
 import com.google.gson.Gson;
 import com.soob.blog.apiserver.exception.BadRequestException;
-import com.soob.blog.apiserver.openapi.kakao.model.KakaoResponseModel;
-import com.soob.blog.apiserver.openapi.naver.NaverService;
+import com.soob.blog.apiserver.exception.InternalServerErrorException;
 import com.soob.blog.apiserver.keyword.dto.SearchRequestDto;
 import com.soob.blog.apiserver.keyword.dto.SearchResponseDto;
 import com.soob.blog.apiserver.keyword.enums.SortCode;
+import com.soob.blog.apiserver.openapi.kakao.model.KakaoResponseModel;
+import com.soob.blog.apiserver.openapi.naver.NaverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -16,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -33,7 +34,7 @@ public class KakaoService {
 	@Value("${api.kakao.apiKey}")
 	private String apiKey;
 	
-	private final String url = "/v2/search/blog";
+	private static final String KAKAO_BLOG_SEARCH_URL = "/v2/search/blog";
 	
 	private final NaverService naverService;
 	
@@ -43,12 +44,11 @@ public class KakaoService {
 		headers.add("Authorization", apiKey);
 		headers.add("Content-Type", "application/json;charset=UTF-8");
 		
-		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<String, String>();
+		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
 		queryParams.add("query", requestDto.getQuery());
 		if(requestDto.getSort() != null) {
-			SortCode code = requestDto.getSort();
 			String sort = "accuracy";
-			if(code.getCode().equals("R")) {
+			if(requestDto.getSort().equals(SortCode.RECENT)) {
 				sort = "recency";
 			}
 			queryParams.add("sort", sort);
@@ -61,7 +61,7 @@ public class KakaoService {
 		}
 		
 		UriComponents completedUri = UriComponentsBuilder
-				.fromHttpUrl(host+url)
+				.fromHttpUrl(host + KAKAO_BLOG_SEARCH_URL)
 				.queryParams(queryParams)
 				.build();
 		
@@ -75,7 +75,7 @@ public class KakaoService {
 			if(model != null) {
 				responseDto = model.toDto();
 			}
-		} catch (HttpClientErrorException exception) {
+		} catch (HttpStatusCodeException exception) {
 			if(!exception.getStatusCode().is2xxSuccessful()) {
 				if(exception.getStatusCode().is5xxServerError()) {
 					responseDto = naverService.searchBlog(requestDto);
@@ -86,7 +86,10 @@ public class KakaoService {
 					throw new BadRequestException(map.get("message"));
 				}
 			}
+		} catch (Exception exception) {
+			throw new InternalServerErrorException();
 		}
+		
 		return responseDto;
 	}
 }
